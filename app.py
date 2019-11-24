@@ -19,7 +19,7 @@ app = Flask(__name__)
 
 app.config['SECRET_KEY'] = 'pooja'  #need to be changed
 
-app.config['SQLALCHEMY_DATABASE_URI']='postgresql://postgres:vandana123@localhost:5432/Flash_TicketSystem'
+app.config['SQLALCHEMY_DATABASE_URI']='mysql+psycopg2://root:DxMvJ99vIZXsMs4R@0.0.0.0:3306/FlashTicket'
 
 db.init_app(app)
 

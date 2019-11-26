@@ -18,3 +18,4 @@ Flask-SocketIO==2.8.6
 psycopg2
 mysqlclient
 PyMySQL
+flask-bootstrap

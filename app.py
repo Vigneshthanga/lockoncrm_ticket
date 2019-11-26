@@ -15,11 +15,17 @@ import datetime
 
 
 
-app = Flask(__name__)
+app = Flask(__name__,static_url_path='/ticket/static')
 
 app.config['SECRET_KEY'] = 'pooja'  #need to be changed
 
-app.config['SQLALCHEMY_DATABASE_URI']='mysql+pymysql://ticket:MygAPkoedtauVMV3@192.168.33.15:3306/ticket'
+app.config['SQLALCHEMY_DATABASE_URI']='mysql+pymysql://ticket:C65EJ9u0VBUPVWU7@192.168.33.15:3306/ticket'
+
+#app.config['STATIC_URL']= '/ticket/static/'
+
+#app.static_folder = '/ticket/static'
+
+#app._static_folder = '/static'
 
 db.init_app(app)
 
@@ -55,15 +61,15 @@ class UserSchema(Schema):
 users_schema = UserSchema(many=True)  # List of objects
 
 
-@app.route("/ticket/query user", methods=["POST"])
+@app.route("/ticket/query_user", methods=["POST"])
 def query_user():
 	all_users = user.query.all()
 
 	schema_result = users_schema.dump(all_users)
-	return simplejson.dumps({"data":schema_result.data})
+	return simplejson.dumps({"data":schema_result})
 
 
-@app.route("/ticket/query user only team members", methods=["POST"])
+@app.route("/ticket/query_user_only_team_members", methods=["POST"])
 def query_user_only_team_members():
 	all_users = user.query.filter(user.rolename == "team member")
 
@@ -78,7 +84,7 @@ class ticketSchema(Schema):
 tickets_schema = ticketSchema(many=True)  # List of objects
 
 
-@app.route("/ticket/query ticket", methods=["POST"])
+@app.route("/ticket/query_ticket", methods=["POST"])
 def query_ticket():
 
 
@@ -89,7 +95,7 @@ def query_ticket():
 			all_tickets = ticket.query.filter(ticket.submittedby_name == current_user.id).all()
 		else:
 			all_tickets = ticket.query.all()
-
+		print(all_tickets)
 		for rows in all_tickets:
 			if(rows.assignedto_name != None):
 				rows.assignedto_name = rows.assignedto.username
@@ -105,7 +111,8 @@ def query_ticket():
 				rows.completeddate = (rows.completeddate).strftime('%m %d %Y')
 
 	schema_result = tickets_schema.dump(all_tickets)
-	return simplejson.dumps({"data":schema_result.data})
+	print(schema_result)
+	return simplejson.dumps({"data":schema_result})
 
 
 
@@ -113,7 +120,7 @@ def filter_user(requested):
 	data = user.query.filter_by(username=str(requested['username']),rolename=str(requested['rolename']),name=str(requested['name'])).first()
 	return data
 
-@app.route('/ticket/create user',methods=['POST'])
+@app.route('/ticket/create_user',methods=['POST'])
 def create_user():
 	data = request.json
 	row = user(data[0],data[0],data[1],data[3],data[2])
@@ -126,7 +133,7 @@ def create_user():
 
 	return "created"
 
-@app.route('/ticket/update user',methods=['POST'])
+@app.route('/ticket/update_user',methods=['POST'])
 def update_user():
 	requested = request.json
 	row = filter_user(requested[4][0])
@@ -138,14 +145,14 @@ def update_user():
 	db.session.commit()
 	return "updated"
 
-@app.route('/ticket/file issue',methods=['POST','GET'])
+@app.route('/ticket/file_issue',methods=['POST','GET'])
 @login_required
 @client_permission.require(http_exception=403)
 def fileissue():
 	form = fileissueform()
 
 	if request.method == 'GET':
-		return render_template('client/pages/issue box.html',form=form)
+		return render_template('client/pages/issue_box.html',form=form)
 	issue = form.issue.data
 	subject = form.subject.data
 	description = form.description.data
@@ -157,32 +164,32 @@ def fileissue():
 	db.session.commit()
 	return redirect(url_for('fileissue'))
 
-@app.route('/ticket/view tickets')
+@app.route('/ticket/view_tickets')
 @login_required
 @client_permission.require(http_exception=403)
 def viewtickets():
-	return render_template('client/pages/view ticket.html')
+	return render_template('client/pages/view_ticket.html')
 
-@app.route('/ticket/manage users')
+@app.route('/ticket/manage_users')
 @login_required
 @administrator_permission.require(http_exception=403)
 def manageusers():
-	return render_template('administrator/pages/manage users.html')
+	return render_template('administrator/pages/manage_users.html')
 
 
-@app.route('/ticket/manage tickets')
+@app.route('/ticket/manage_tickets')
 @login_required
 @administrator_permission.require(http_exception=403)
 def managetickets():
-	return render_template('administrator/pages/manage tickets.html')
+	return render_template('administrator/pages/manage_tickets.html')
 
 
-@app.route('/ticket/manage tickets team member',methods=['POST','GET'])
+@app.route('/ticket/manage_tickets_team_member',methods=['POST','GET'])
 @login_required
 @team_member_permission.require(http_exception=403)
 def manageticketsteammember():
 	if request.method == 'GET':
-		return render_template('team member/pages/manage tickets.html')
+		return render_template('team_member/pages/manage_tickets.html')
 	requested = request.json
 	row = ticket.query.filter_by(id=int(requested[1][0]['id'])).first()
 	if(row != None):
@@ -196,12 +203,12 @@ def manageticketsteammember():
 	db.session.commit()
 	return "OK"
 
-@app.route('/ticket/manage tickets project manager',methods=['POST','GET'])
+@app.route('/ticket/manage_tickets_project_manager',methods=['POST','GET'])
 @login_required
 @project_manager_permission.require(http_exception=403)
 def manageticketsprojectmanager():
 	if request.method == 'GET':
-		return render_template('project manager/pages/manage tickets.html')
+		return render_template('project_manager/pages/manage_tickets.html')
 	requested = request.json
 	row = ticket.query.filter_by(id=int(requested[2][0]['id'])).first()
 	if(row != None):

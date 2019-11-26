@@ -162,7 +162,8 @@ def fileissue():
 
 	db.session.add(ticket(project=issue,subject=subject,description=description,duedate=duedate,startdate=startdate,submittedby_name=submittedby_name))
 	db.session.commit()
-	return redirect(url_for('fileissue'))
+	return render_template('client/pages/view_ticket.html') 
+	#redirect(url_for('fileissue'))
 
 @app.route('/ticket/view_tickets')
 @login_required

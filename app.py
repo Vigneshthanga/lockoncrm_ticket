@@ -19,7 +19,7 @@ app = Flask(__name__,static_url_path='/ticket/static')
 
 app.config['SECRET_KEY'] = 'pooja'  #need to be changed
 
-app.config['SQLALCHEMY_DATABASE_URI']='mysql+pymysql://ticket:C65EJ9u0VBUPVWU7@192.168.33.15:3306/ticket'
+app.config['SQLALCHEMY_DATABASE_URI']='mysql+pymysql://ticket:commonsyspass@192.168.33.15:3306/ticket'
 
 #app.config['STATIC_URL']= '/ticket/static/'
 

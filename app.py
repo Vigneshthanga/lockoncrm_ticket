@@ -28,9 +28,8 @@ app.config['SQLALCHEMY_DATABASE_URI']='mysql+pymysql://ticket:commonsyspass@192.
 #app._static_folder = '/static'
 
 db.init_app(app)
-
-#with app.test_request_context():
-#   load_db(db)
+with app.app_context():
+   db.create_all()
 
 login_manager = LoginManager()
 login_manager.init_app(app)
@@ -79,7 +78,7 @@ def query_user_only_team_members():
 
 class ticketSchema(Schema):
 	class Meta:
-		fields = ('id','project', 'subject', 'description','submittedby_name','startdate','duedate','assignedby_submittedto_name','assignedto_name','completeddate','status')
+		fields = ('id','project', 'subject', 'description','startdate','duedate','completeddate','status')
 
 tickets_schema = ticketSchema(many=True)  # List of objects
 
@@ -89,20 +88,21 @@ def query_ticket():
 
 
 	with db.session.no_autoflush:
-		if(current_user.rolename == "team member"):
-			all_tickets = ticket.query.filter(ticket.assignedto_name == current_user.id).all()
-		elif(current_user.rolename == "client"):
-			all_tickets = ticket.query.filter(ticket.submittedby_name == current_user.id).all()
-		else:
-			all_tickets = ticket.query.all()
+#		if(current_user.rolename == "team member"):
+#			all_tickets = ticket.query.filter(ticket.assignedto_name == current_user.id).all()
+#		elif(current_user.rolename == "client"):
+#			all_tickets = ticket.query.filter(ticket.submittedby_name == current_user.id).all()
+#		else:
+#			all_tickets = ticket.query.all()
+		all_tickets = ticket.query.all()
 		print(all_tickets)
 		for rows in all_tickets:
-			if(rows.assignedto_name != None):
-				rows.assignedto_name = rows.assignedto.username
-			if(rows.submittedby_name != None):
-				rows.submittedby_name = rows.submittedby.username
-			if(rows.assignedby_submittedto_name != None):
-				rows.assignedby_submittedto_name = rows.assignedby_submittedto.username
+			#if(rows.assignedto_name != None):
+			#	rows.assignedto_name = rows.assignedto.username
+			#if(rows.submittedby_name != None):
+			#	rows.submittedby_name = rows.submittedby.username
+			#if(rows.assignedby_submittedto_name != None):
+			#	rows.assignedby_submittedto_name = rows.assignedby_submittedto.username
 			if(rows.duedate != None):
 				rows.duedate = (rows.duedate).strftime('%m %d %Y')
 			if(rows.startdate != None):
@@ -146,8 +146,8 @@ def update_user():
 	return "updated"
 
 @app.route('/ticket/file_issue',methods=['POST','GET'])
-@login_required
-@client_permission.require(http_exception=403)
+#@login_required
+#@client_permission.require(http_exception=403)
 def fileissue():
 	form = fileissueform()
 
@@ -158,36 +158,36 @@ def fileissue():
 	description = form.description.data
 	duedate = form.date.data
 	startdate = datetime.datetime.now()
-	submittedby_name = current_user.id
+	submittedby_name = 1
 
-	db.session.add(ticket(project=issue,subject=subject,description=description,duedate=duedate,startdate=startdate,submittedby_name=submittedby_name))
+	db.session.add(ticket(project=issue,subject=subject,description=description,duedate=duedate,startdate=startdate))
 	db.session.commit()
 	return render_template('client/pages/view_ticket.html') 
 	#redirect(url_for('fileissue'))
 
 @app.route('/ticket/view_tickets')
-@login_required
-@client_permission.require(http_exception=403)
+#@login_required
+#@client_permission.require(http_exception=403)
 def viewtickets():
 	return render_template('client/pages/view_ticket.html')
 
 @app.route('/ticket/manage_users')
-@login_required
-@administrator_permission.require(http_exception=403)
+#@login_required
+#@administrator_permission.require(http_exception=403)
 def manageusers():
 	return render_template('administrator/pages/manage_users.html')
 
 
 @app.route('/ticket/manage_tickets')
-@login_required
-@administrator_permission.require(http_exception=403)
+#@login_required
+#@administrator_permission.require(http_exception=403)
 def managetickets():
 	return render_template('administrator/pages/manage_tickets.html')
 
 
 @app.route('/ticket/manage_tickets_team_member',methods=['POST','GET'])
-@login_required
-@team_member_permission.require(http_exception=403)
+#@login_required
+#@team_member_permission.require(http_exception=403)
 def manageticketsteammember():
 	if request.method == 'GET':
 		return render_template('team_member/pages/manage_tickets.html')
@@ -205,8 +205,8 @@ def manageticketsteammember():
 	return "OK"
 
 @app.route('/ticket/manage_tickets_project_manager',methods=['POST','GET'])
-@login_required
-@project_manager_permission.require(http_exception=403)
+#@login_required
+#@project_manager_permission.require(http_exception=403)
 def manageticketsprojectmanager():
 	if request.method == 'GET':
 		return render_template('project_manager/pages/manage_tickets.html')
@@ -217,12 +217,14 @@ def manageticketsprojectmanager():
 		if (user_row.rolename == "team member"):
 			row.assignedto_name = str(user_row.id)
 			row.status = str(requested[1])
-			row.assignedby_submittedto_name = current_user.id
+			#row.assignedby_submittedto_name = current_user.id
 	db.session.commit()
 	return "OK"
 
 @app.route("/ticket/dashboard",methods=['GET','POST'])
 def dashboard():
+	return redirect(url_for('/ticket/view_tickets'))
+'''
 		if(current_user.rolename == 'administrator'):
 			return redirect(url_for('manageusers'))
 		elif(current_user.rolename == 'project manager'):
@@ -232,7 +234,8 @@ def dashboard():
 		elif(current_user.rolename == 'client'):
 			return redirect(url_for('fileissue'))
 		else:
-			return redirect(url_for('login'))
+			return redirect(url_for('/ticket/view_tickets'))
+'''
 
 app.jinja_env.globals.update(dashboard=dashboard)
 
@@ -286,6 +289,12 @@ def unauthorized(e):
     flash('You have no permissions to access this page')
     return redirect(url_for('login'))
 
+
+@app.route('/ticket/getperms', methods=['GET', 'POST'])
+def get_permission():
+    content = request.json
+    print(content['read'])
+    return jsonify({"uuid":'hello'})
 
 
 if __name__ == '__main__':

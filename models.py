@@ -16,9 +16,9 @@ class user(db.Model):
    name = db.Column(db.String(30),nullable=False)
    rolename = db.Column(db.Enum('administrator', 'client', 'project manager','team member'),nullable=False,default='client')
    
-   assignedby_submittedto = db.relationship('ticket', foreign_keys='ticket.assignedby_submittedto_name',backref="assignedby_submittedto",lazy="dynamic")
-   submittedby = db.relationship('ticket', foreign_keys='ticket.submittedby_name',backref="submittedby",lazy="dynamic")
-   assignedto = db.relationship('ticket', foreign_keys='ticket.assignedto_name',backref="assignedto",lazy="dynamic")
+   #assignedby_submittedto = db.relationship('ticket', foreign_keys='ticket.assignedby_submittedto_name',backref="assignedby_submittedto",lazy="dynamic")
+   #submittedby = db.relationship('ticket', foreign_keys='ticket.submittedby_name',backref="submittedby",lazy="dynamic")
+   #assignedto = db.relationship('ticket', foreign_keys='ticket.assignedto_name',backref="assignedto",lazy="dynamic")
 
 
 
@@ -61,9 +61,9 @@ class ticket(db.Model):
   subject = db.Column(db.String(30))
   description = db.Column(db.String(300))
   status = db.Column(db.Enum('resolved','assigned','untouched','omitted','redo','completed'),default='untouched')
-  assignedto_name = db.Column(db.Integer,db.ForeignKey('user.id'))
-  assignedby_submittedto_name = db.Column(db.Integer,db.ForeignKey('user.id'))
-  submittedby_name = db.Column(db.Integer,db.ForeignKey('user.id'))
+  #assignedto_name = db.Column(db.Integer,db.ForeignKey('user.id'))
+  #assignedby_submittedto_name = db.Column(db.Integer,db.ForeignKey('user.id'))
+  #submittedby_name = db.Column(db.Integer,db.ForeignKey('user.id'))
 
 	
 # temporary daabase
@@ -84,14 +84,9 @@ def load_db(db):
 
 
    db.session.add_all([
-   	ticket(project="bug",subject="bug...bug",description="there is a bug ih the home. solve it",submittedby_name=4,assignedto_name=3,assignedby_submittedto_name=2),
-   	ticket(project="feature",subject="about feature",description="the look sucks",submittedby_name=4,assignedto_name=3,assignedby_submittedto_name=6)
+   	ticket(project="bug",subject="bug...bug",description="there is a bug ih the home. solve it"),
+   	ticket(project="feature",subject="about feature",description="the look sucks",submittedby_name=4)
    ])
 
    db.session.commit()
-
     
-
-
-
-
